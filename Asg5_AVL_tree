@@ -1,0 +1,262 @@
+#include<iostream>
+#include<algorithm>
+using namespace std;
+class avl_node
+{
+    string word,meaning;
+    avl_node *left,*right;
+    public:
+    friend class avlTree;
+};
+
+class avlTree
+{
+    public:
+    avl_node *root;
+    int height(avl_node*);
+    int diff(avl_node*);
+    avl_node*rr_rotation(avl_node*);
+    avl_node*ll_rotation(avl_node*);
+    avl_node*lr_rotation(avl_node*);
+    avl_node*rl_rotation(avl_node*);
+    avl_node*balance(avl_node*);
+    avl_node*insert(avl_node*);
+    avl_node*insert(avl_node*,avl_node*);
+    void display(avl_node*,int);
+    void inorder(avl_node*);
+    void preorder(avl_node*);
+    void postorder(avl_node*);
+    avlTree()
+    {
+        root=NULL;
+    }
+};
+
+// Function to get height of a node
+int avlTree::height(avl_node* temp)
+{
+    int h = 0;
+    if(temp != NULL)
+    {
+        int l_height = height(temp->left);
+        int r_height = height(temp->right);
+        h = max(l_height, r_height) + 1;
+    }
+    return h;
+}
+
+// Function to get balance factor
+int avlTree::diff(avl_node* temp)
+{
+    int l_height = height(temp->left);
+    int r_height = height(temp->right);
+    return l_height - r_height;
+}
+
+// Right-Right Rotation
+avl_node* avlTree::rr_rotation(avl_node* parent)
+{
+    avl_node* temp;
+    temp = parent->right;
+    parent->right = temp->left;
+    temp->left = parent;
+    return temp;
+}
+
+// Left-Left Rotation
+avl_node* avlTree::ll_rotation(avl_node* parent)
+{
+    avl_node* temp;
+    temp = parent->left;
+    parent->left = temp->right;
+    temp->right = parent;
+    return temp;
+}
+
+// Left-Right Rotation
+avl_node* avlTree::lr_rotation(avl_node* parent)
+{
+    avl_node* temp;
+    temp = parent->left;
+    parent->left = rr_rotation(temp);
+    return ll_rotation(parent);
+}
+
+// Right-Left Rotation
+avl_node* avlTree::rl_rotation(avl_node* parent)
+{
+    avl_node* temp;
+    temp = parent->right;
+    parent->right = ll_rotation(temp);
+    return rr_rotation(parent);
+}
+
+// Balance the tree
+avl_node* avlTree::balance(avl_node* temp)
+{
+    int bal_factor = diff(temp);
+    
+    if(bal_factor > 1)
+    {
+        if(diff(temp->left) > 0)
+            temp = ll_rotation(temp);
+        else
+            temp = lr_rotation(temp);
+    }
+    else if(bal_factor < -1)
+    {
+        if(diff(temp->right) > 0)
+            temp = rl_rotation(temp);
+        else
+            temp = rr_rotation(temp);
+    }
+    return temp;
+}
+
+// Insert a node (public version)
+avl_node* avlTree::insert(avl_node* root)
+{
+    avl_node* new_node = new avl_node;
+    cout << "Enter word: ";
+    cin >> new_node->word;
+    cout << "Enter meaning: ";
+    cin >> new_node->meaning;
+    new_node->left = NULL;
+    new_node->right = NULL;
+    return insert(root, new_node);
+}
+
+// Insert a node (private version)
+avl_node* avlTree::insert(avl_node* root, avl_node* temp)
+{
+    if(root == NULL)
+    {
+        root = temp;
+        return root;
+    }
+    
+    if(temp->word < root->word)
+    {
+        root->left = insert(root->left, temp);
+        root = balance(root);
+    }
+    else if(temp->word > root->word)
+    {
+        root->right = insert(root->right, temp);
+        root = balance(root);
+    }
+    return root;
+}
+
+// Display the tree
+void avlTree::display(avl_node* ptr, int level)
+{
+    int i;
+    if(ptr != NULL)
+    {
+        display(ptr->right, level + 1);
+        cout << "\n";
+        if(ptr == root)
+            cout << "Root -> ";
+        for(i = 0; i < level && ptr != root; i++)
+            cout << "        ";
+        cout << ptr->word << ":" << ptr->meaning;
+        display(ptr->left, level + 1);
+    }
+}
+
+// Inorder traversal
+void avlTree::inorder(avl_node* tree)
+{
+    if(tree == NULL)
+        return;
+    inorder(tree->left);
+    cout << tree->word << " : " << tree->meaning << endl;
+    inorder(tree->right);
+}
+
+// Preorder traversal
+void avlTree::preorder(avl_node* tree)
+{
+    if(tree == NULL)
+        return;
+    cout << tree->word << " : " << tree->meaning << endl;
+    preorder(tree->left);
+    preorder(tree->right);
+}
+
+// Postorder traversal
+void avlTree::postorder(avl_node* tree)
+{
+    if(tree == NULL)
+        return;
+    postorder(tree->left);
+    postorder(tree->right);
+    cout << tree->word << " : " << tree->meaning << endl;
+}
+
+int main()
+{
+    avlTree avl;
+    int choice;
+    char ch;
+    
+    do
+    {
+        cout << "\nAVL Tree Operations" << endl;
+        cout << "1. Insert a word" << endl;
+        cout << "2. Display tree" << endl;
+        cout << "3. Inorder traversal" << endl;
+        cout << "4. Preorder traversal" << endl;
+        cout << "5. Postorder traversal" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        
+        switch(choice)
+        {
+            case 1:
+                avl.root = avl.insert(avl.root);
+                break;
+            case 2:
+                if(avl.root == NULL)
+                    cout << "Tree is empty" << endl;
+                else
+                    avl.display(avl.root, 1);
+                break;
+            case 3:
+                if(avl.root == NULL)
+                    cout << "Tree is empty" << endl;
+                else
+                {
+                    cout << "Inorder traversal:" << endl;
+                    avl.inorder(avl.root);
+                }
+                break;
+            case 4:
+                if(avl.root == NULL)
+                    cout << "Tree is empty" << endl;
+                else
+                {
+                    cout << "Preorder traversal:" << endl;
+                    avl.preorder(avl.root);
+                }
+                break;
+            case 5:
+                if(avl.root == NULL)
+                    cout << "Tree is empty" << endl;
+                else
+                {
+                    cout << "Postorder traversal:" << endl;
+                    avl.postorder(avl.root);
+                }
+                break;
+            default:
+                cout << "Invalid choice" << endl;
+        }
+        
+        cout << "\nDo you want to continue? (y/n): ";
+        cin >> ch;
+    } while(ch == 'y' || ch == 'Y');
+    
+    return 0;
+}
